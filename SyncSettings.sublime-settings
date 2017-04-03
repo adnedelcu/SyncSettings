@@ -1,37 +1,47 @@
-/**
-  Don't edit this file
-  use the one the User folder
- */
-
 {
-	/**
-		* This token allow to plugin do:
-		* - Create a Gist
-		* - Edit a Gist
-		* - Upload a Gist
-	 */
-  "access_token": "",
   /**
-  	* This option has a list with the excluded files
-    * Files included: [
-    *   Package Control.last-run
-    *   Package Control.merged-ca-bundle
-    *   Package Control.user-ca-bundle
-    *   Package Control.system-ca-bundle
-    *   Preferences.sublime-settings
-    *   Package Control.sublime-settings
-		*   Default (OSX).sublime-keymap
-		*   Default (Windows).sublime-keymap
-		*   Default (Linux).sublime-keymap
+    * This token allow to plugin do:
+    * - Create a Gist
+    * - Download a Gist
+    * - Upload a Gist
+    * - Delete a Gist
+   */
+  "access_token": "",
+
+  /**
+    * This option has a list with the excluded files
    */
   "excluded_files": [
+    ".dmg",
+    ".DS_Store",
+    ".DS_Store?",
+    ".exe",
+    ".Spotlight-V100",
+    ".Trashes",
+    "ehthumbs.db",
+    "oscrypto-ca-bundle.crt",
+    "SyncSettings.sublime-settings",
+    "Package Control.cache",
     "Package Control.last-run",
     "Package Control.merged-ca-bundle",
+    "Package Control.system-ca-bundle",
     "Package Control.user-ca-bundle",
-    "Package Control.system-ca-bundle"
+    "Thumbs.db"
   ],
-  /*
-  	This option has the gist id for upload your configuration
+
+  /**
+   * Files that always should be included
+   * Note: The files included here, overwrite the rule `excluded_files`
    */
-  "gist_id": ""
+  "included_files": [],
+
+  /**
+   * Gist identifier for upload your configuration
+   */
+  "gist_id": "",
+
+  /**
+   * Download automagically the new version on ST startup
+   */
+  "auto_upgrade": false
 }

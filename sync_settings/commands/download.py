@@ -1,31 +1,49 @@
 # -*- coding: utf-8 -*-
 
-import sublime, os
+import sublime
 from sublime_plugin import WindowCommand
-from ..sync_settings_manager import SyncSettingsManager
-from ..gistapi import Gist
+from ..sync_manager import SyncManager
+from ..sync_logger import SyncLogger
+from ..sync_version import SyncVersion
+from ..thread_progress import ThreadProgress
 
-class SyncSettingsDownloadCommand (WindowCommand):
-	def run (self):
-		gistId = SyncSettingsManager.settings('gist_id')
-		if gistId:
-			try:
-				api = Gist(SyncSettingsManager.settings('access_token'))
-				remoteFiles = api.get(gistId).get('files')
-				files = SyncSettingsManager.getFiles()
+class SyncSettingsDownloadCommand(WindowCommand):
 
-				if len(files) > 0:
-					for f in files:
-						fileJSON = remoteFiles.get(f)
-						if not fileJSON is None:
-						 	fileOpened = open(SyncSettingsManager.getPackagesPath(f), 'w+')
-						 	fileOpened.write(fileJSON.get('content'))
-						 	fileOpened.close()
-					sublime.message_dialog('Sync Settings: Files Downloaded Successfully\nNow you need restart Sublime Text for Package Control installs all dependencies!')
-					sublime.status_message('Sync Settings: Files Downloaded Successfully')
-				else:
-					sublime.status_message('Sync Settings: There are not enough files to create the gist')
-			except Exception as e:
-				sublime.status_message('Sync Settings: ' + str(e))
-		else:
-			sublime.status_message('Sync Settings: Set the gist_id in the configuration file')
+  def __download_request(self):
+    gist_id = SyncManager.settings('gist_id')
+
+    if gist_id:
+      try:
+        api = SyncManager.gist_api()
+
+        if api is not None:
+          gist_content = api.get(gist_id)
+          remote_files = gist_content.get('files')
+
+          if len(remote_files):
+            # Excluding SyncSettings.sublime-settings
+            remote_files.pop(SyncManager.get_settings_filename(), None)
+
+            SyncManager.update_from_remote_files(remote_files)
+            success_message = ''.join([
+              'Your settings were upgraded correctly, ',
+              'restart ST to complete the upgrade.',
+            ])
+            SyncLogger.log(success_message, SyncLogger.LOG_LEVEL_SUCCESS)
+            SyncVersion.upgrade(gist_content)
+          else:
+            SyncLogger.log(
+              'There are not enough files to create the backup.',
+              SyncLogger.LOG_LEVEL_WARNING
+            )
+      except Exception as ex:
+        SyncLogger.log(ex, SyncLogger.LOG_LEVEL_ERROR)
+
+    else:
+      SyncLogger.log(
+        'Set `gist_id` property on the configuration file',
+        SyncLogger.LOG_LEVEL_WARNING
+      )
+
+  def run(self):
+    ThreadProgress(lambda: self.__download_request(), 'Downloading the latest version')
